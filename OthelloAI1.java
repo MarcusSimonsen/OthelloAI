@@ -2,7 +2,7 @@ import java.util.List;
 import java.util.Collections;
 
 public class OthelloAI1 implements IOthelloAI {
-    private static int depthLimit = 5;
+    private static int depthLimit = 6;
     private int me;
     private static int[][] heuristic = {
             { 4, -3, 2, 2, 2, 2, -3, 4 },
