@@ -8,6 +8,7 @@ public class Test {
         IOthelloAI ai2 = null;
         int ai1Wins = 0;
         int ai2Wins = 0;
+        int draws = 0;
         int size = 8;
         String errMsg = null;
         boolean err = false;
@@ -46,7 +47,7 @@ public class Test {
             return;
         }
 
-        for (int i = 0; i < testAmount/2; i++) {
+        for (int i = 0; i < testAmount / 2; i++) {
             System.out.println(i);
             GameState s = new GameState(size, 1);
             while (!s.isFinished()) {
@@ -64,11 +65,13 @@ public class Test {
             int[] tokens = s.countTokens();
             if (tokens[0] > tokens[1])
                 ai1Wins++;
-            else
+            else if (tokens[1] > tokens[0])
                 ai2Wins++;
+            else
+                draws++;
         }
-        for (int i = 0; i < testAmount/2; i++) {
-            System.out.println(i+testAmount/2);
+        for (int i = 0; i < testAmount / 2; i++) {
+            System.out.println(i + testAmount / 2);
             GameState s = new GameState(size, 1);
             while (!s.isFinished()) {
                 if (s.legalMoves().size() == 0) {
@@ -85,12 +88,15 @@ public class Test {
             int[] tokens = s.countTokens();
             if (tokens[0] > tokens[1])
                 ai2Wins++;
-            else
+            else if (tokens[1] > tokens[0])
                 ai1Wins++;
+            else
+                draws++;
         }
 
         System.out.println("AI1 got " + ai1Wins + " wins");
         System.out.println("AI2 got " + ai2Wins + " wins");
+        System.out.println(draws + " draws");
     }
 
     /**
