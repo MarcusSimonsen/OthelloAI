@@ -1,5 +1,5 @@
-import java.util.Comparator;
 import java.util.List;
+import java.util.Collections;
 
 public class OthelloAI1 implements IOthelloAI {
     private static int depthLimit = 5;
@@ -63,7 +63,9 @@ public class OthelloAI1 implements IOthelloAI {
             return new Pair(Eval(s), null);
         Pair v = new Pair(Double.NEGATIVE_INFINITY, null);
 
-        for (Position a : s.legalMoves()) {
+        List<Position> l = s.legalMoves();
+        Collections.shuffle(l);
+        for (Position a : l) {
             GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
             new_s.insertToken(a);
             Pair p = MinValue(new_s, ply + 1, alpha, beta);
@@ -84,7 +86,9 @@ public class OthelloAI1 implements IOthelloAI {
             return new Pair(Eval(s), null);
         Pair v = new Pair(Double.POSITIVE_INFINITY, null);
 
-        for (Position a : s.legalMoves()) {
+        List<Position> l = s.legalMoves();
+        Collections.shuffle(l);
+        for (Position a : l) {
             GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
             new_s.insertToken(a);
             Pair p = MaxValue(new_s, ply + 1, alpha, beta);
