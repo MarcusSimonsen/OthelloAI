@@ -1,5 +1,7 @@
 import java.util.List;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 public class OthelloAI1 implements IOthelloAI {
     private static int depthLimit = 6;
@@ -65,7 +67,10 @@ public class OthelloAI1 implements IOthelloAI {
 
         List<Position> l = s.legalMoves();
         Collections.shuffle(l);
-        for (Position a : l) {
+        PriorityQueue<Position> moves = new PriorityQueue<Position>(new MaxMoveComparator());
+        moves.addAll(l);
+        while (!moves.isEmpty()) {
+            Position a = moves.remove();
             GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
             new_s.insertToken(a);
             Pair p = MinValue(new_s, ply + 1, alpha, beta);
@@ -88,7 +93,10 @@ public class OthelloAI1 implements IOthelloAI {
 
         List<Position> l = s.legalMoves();
         Collections.shuffle(l);
-        for (Position a : l) {
+        PriorityQueue<Position> moves = new PriorityQueue<Position>(new MinMoveComparator());
+        moves.addAll(l);
+        while (!moves.isEmpty()) {
+            Position a = moves.remove();
             GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
             new_s.insertToken(a);
             Pair p = MaxValue(new_s, ply + 1, alpha, beta);
@@ -107,5 +115,41 @@ public class OthelloAI1 implements IOthelloAI {
         Pair p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
         return p.move;
+    }
+}
+
+class MaxMoveComparator implements Comparator<Position> {
+    private static int[][] heuristic = {
+            { 4, -3, 2, 2, 2, 2, -3, 4 },
+            { -3, -4, -1, -1, -1, -1, -4, -3 },
+            { 2, -1, 1, 0, 0, 1, -1, 2 },
+            { 2, -1, 0, 1, 1, 0, -1, 2 },
+            { 2, -1, 0, 1, 1, 0, -1, 2 },
+            { 2, -1, 1, 0, 0, 1, -1, 2 },
+            { -3, -4, -1, -1, -1, -1, -4, -3 },
+            { 4, -3, 2, 2, 2, 2, -3, 4 }
+    };
+
+    @Override
+    public int compare(Position move1, Position move2) {
+        return heuristic[move1.col][move1.row] - heuristic[move2.col][move2.row];
+    }
+}
+
+class MinMoveComparator implements Comparator<Position> {
+    private static int[][] heuristic = {
+            { 4, -3, 2, 2, 2, 2, -3, 4 },
+            { -3, -4, -1, -1, -1, -1, -4, -3 },
+            { 2, -1, 1, 0, 0, 1, -1, 2 },
+            { 2, -1, 0, 1, 1, 0, -1, 2 },
+            { 2, -1, 0, 1, 1, 0, -1, 2 },
+            { 2, -1, 1, 0, 0, 1, -1, 2 },
+            { -3, -4, -1, -1, -1, -1, -4, -3 },
+            { 4, -3, 2, 2, 2, 2, -3, 4 }
+    };
+
+    @Override
+    public int compare(Position move1, Position move2) {
+        return (-heuristic[move1.col][move1.row]) - (-heuristic[move2.col][move2.row]);
     }
 }
