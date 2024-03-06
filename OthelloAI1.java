@@ -2,6 +2,7 @@ import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.HashMap;
 
 public class OthelloAI1 implements IOthelloAI {
     private static int depthLimit = 6;
@@ -16,6 +17,7 @@ public class OthelloAI1 implements IOthelloAI {
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 4, -3, 2, 2, 2, 2, -3, 4 }
     };
+    private HashMap<GameState, Pair> explored;
 
     private class Pair {
         double utility;
@@ -31,9 +33,9 @@ public class OthelloAI1 implements IOthelloAI {
      * Simple utility function which is amount of tokens minus amount of enemy
      * tokens
      */
-    public int Eval(GameState s) {
+    public double Eval(GameState s) {
         int[][] board = s.getBoard();
-        int value = 0;
+        double value = 0;
         if (board.length != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
@@ -61,6 +63,8 @@ public class OthelloAI1 implements IOthelloAI {
     }
 
     public Pair MaxValue(GameState s, int ply, double alpha, double beta) {
+        if (explored.containsKey(s))
+            return explored.get(s);
         if (isCutOff(s, ply))
             return new Pair(Eval(s), null);
         Pair v = new Pair(Double.NEGATIVE_INFINITY, null);
@@ -83,10 +87,14 @@ public class OthelloAI1 implements IOthelloAI {
                 return v;
         }
 
-        return new Pair(v.utility == Double.NEGATIVE_INFINITY ? Eval(s) : v.utility, v.move);
+        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s) : v.utility;
+        explored.put(s, v);
+        return v;
     }
 
     public Pair MinValue(GameState s, int ply, double alpha, double beta) {
+        if (explored.containsKey(s))
+            return explored.get(s);
         if (isCutOff(s, ply))
             return new Pair(Eval(s), null);
         Pair v = new Pair(Double.POSITIVE_INFINITY, null);
@@ -108,10 +116,14 @@ public class OthelloAI1 implements IOthelloAI {
             if (v.utility >= alpha)
                 return v;
         }
-        return new Pair(v.utility == Double.POSITIVE_INFINITY ? Eval(s) : v.utility, v.move);
+
+        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s) : v.utility;
+        explored.put(s, v);
+        return v;
     }
 
     public Position decideMove(GameState s) {
+        explored = new HashMap<>();
         Pair p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
         return p.move;
