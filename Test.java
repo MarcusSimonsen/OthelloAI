@@ -68,8 +68,7 @@ public class Test {
                     ai1TotalTime += duration;
                     ai1LongestTime = Math.max(ai1LongestTime, duration);
                     ai1Moves++;
-                }
-                else {
+                } else {
                     ai2TotalTime += duration;
                     ai2LongestTime = Math.max(ai2LongestTime, duration);
                     ai2Moves++;
@@ -89,12 +88,15 @@ public class Test {
             else
                 draws++;
         }
+        System.out.println();
 
         System.out.println("AI1 got " + ai1Wins + " wins");
         System.out.println("AI2 got " + ai2Wins + " wins");
         System.out.println(draws + " draws");
-        System.out.println("AI1 used an average of " + (ai1TotalTime / 1_000_000 / ai1Moves) + " milliseconds per move");
-        System.out.println("AI2 used an average of " + (ai2TotalTime / 1_000_000 / ai2Moves) + " milliseconds per move");
+        System.out
+                .println("AI1 used an average of " + (ai1TotalTime / 1_000_000 / ai1Moves) + " milliseconds per move");
+        System.out
+                .println("AI2 used an average of " + (ai2TotalTime / 1_000_000 / ai2Moves) + " milliseconds per move");
         System.out.println("AI1s slowest move took " + (ai1LongestTime / 1_000_000) + " milliseconds");
         System.out.println("AI2s slowest move took " + (ai2LongestTime / 1_000_000) + " milliseconds");
     }
