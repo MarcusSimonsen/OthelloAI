@@ -2,7 +2,8 @@ import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.PriorityQueue;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class OthelloAI1 implements IOthelloAI {
     private static int depthLimit = 6;
@@ -17,7 +18,7 @@ public class OthelloAI1 implements IOthelloAI {
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 4, -3, 2, 2, 2, 2, -3, 4 }
     };
-    private HashMap<GameState, Pair> explored;
+    private Map<GameState, Pair> explored;
 
     private class Pair {
         double utility;
@@ -36,7 +37,15 @@ public class OthelloAI1 implements IOthelloAI {
     public double Eval(GameState s) {
         int[][] board = s.getBoard();
         double value = 0;
-        if (board.length != 8) {
+        if (s.isFinished()) {
+            int[] tokens = s.countTokens();
+            if (tokens[me - 1] > tokens[me % 2])
+                value = Double.MAX_VALUE;
+            else if (tokens[me - 1] < tokens[me % 2])
+                value = Double.MIN_VALUE;
+            else
+                value = 0;
+        } else if (board.length != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
         } else {
@@ -87,7 +96,8 @@ public class OthelloAI1 implements IOthelloAI {
                 return v;
         }
 
-        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s) : v.utility;
+        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s)
+                : v.utility;
         explored.put(s, v);
         return v;
     }
@@ -117,13 +127,14 @@ public class OthelloAI1 implements IOthelloAI {
                 return v;
         }
 
-        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s) : v.utility;
+        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s)
+                : v.utility;
         explored.put(s, v);
         return v;
     }
 
     public Position decideMove(GameState s) {
-        explored = new HashMap<>();
+        explored = new TreeMap<>(new GameStateComparator());
         Pair p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
         return p.move;
@@ -163,5 +174,33 @@ class MinMoveComparator implements Comparator<Position> {
     @Override
     public int compare(Position move1, Position move2) {
         return (-heuristic[move1.col][move1.row]) - (-heuristic[move2.col][move2.row]);
+    }
+}
+
+class GameStateComparator implements Comparator<GameState> {
+    @Override
+    public int compare(GameState s1, GameState s2) {
+        int size1 = s1.getBoard().length;
+        int size2 = s2.getBoard().length;
+        if (size1 != size2) {
+            if (size1 < size2)
+                return -1;
+            else if (size2 < size1)
+                return 1;
+            return 0;
+        } else {
+            int[][] b1 = s1.getBoard();
+            int[][] b2 = s2.getBoard();
+
+            for (int i = 0; i < b1.length; i++) {
+                for (int j = 0; j < b1[i].length; j++) {
+                    if (b1[i][j] != b2[i][j]) {
+                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    }
+                }
+            }
+        }
+
+        return 0;
     }
 }
