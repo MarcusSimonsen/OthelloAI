@@ -54,7 +54,7 @@ public class Test {
         }
 
         for (int i = 0; i < testAmount; i++) {
-            System.out.println(i);
+            System.out.print("\r" + "Test " + i + " out of " + testAmount);
             GameState s = new GameState(size, 1);
             while (!s.isFinished()) {
                 if (s.legalMoves().size() == 0) {
