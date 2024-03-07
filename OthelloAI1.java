@@ -18,17 +18,9 @@ abstract class BaseAI implements IOthelloAI {
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 4, -3, 2, 2, 2, 2, -3, 4 }
     };
-    private Map<GameState, Pair> explored;
+    private Map<GameState, Tuple> explored;
 
-    protected class Pair {
-        double utility;
-        Position move;
-
-        public Pair(double utility, Position move) {
-            this.utility = utility;
-            this.move = move;
-        }
-    }
+    protected record Tuple(Double utility, Position move) {}
 
     /**
      * Simple utility function which is amount of tokens minus amount of enemy
@@ -44,12 +36,12 @@ abstract class BaseAI implements IOthelloAI {
         return false;
     }
 
-    protected Pair MaxValue(GameState s, int ply, double alpha, double beta) {
+    protected Tuple MaxValue(GameState s, int ply, double alpha, double beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
-            return new Pair(Eval(s), null);
-        Pair v = new Pair(Double.NEGATIVE_INFINITY, null);
+            return new Tuple(Eval(s), null);
+        Tuple v = new Tuple(Double.NEGATIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
         Collections.shuffle(l);
@@ -59,28 +51,28 @@ abstract class BaseAI implements IOthelloAI {
             Position a = moves.remove();
             GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
             new_s.insertToken(a);
-            Pair p = MinValue(new_s, ply + 1, alpha, beta);
-            if (p.utility > v.utility) {
-                v = new Pair(p.utility, a);
-                if (v.utility > alpha)
-                    alpha = v.utility;
+            Tuple p = MinValue(new_s, ply + 1, alpha, beta);
+            if (p.utility() > v.utility()) {
+                v = new Tuple(p.utility(), a);
+                if (v.utility() > alpha)
+                    alpha = v.utility();
             }
-            if (v.utility >= beta)
+            if (v.utility() >= beta)
                 return v;
         }
 
-        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s)
-                : v.utility;
+        v = new Tuple(v.utility() == Double.POSITIVE_INFINITY || v.utility() == Double.NEGATIVE_INFINITY ? Eval(s)
+                : v.utility(), v.move());
         explored.put(s, v);
         return v;
     }
 
-    protected Pair MinValue(GameState s, int ply, double alpha, double beta) {
+    protected Tuple MinValue(GameState s, int ply, double alpha, double beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
-            return new Pair(Eval(s), null);
-        Pair v = new Pair(Double.POSITIVE_INFINITY, null);
+            return new Tuple(Eval(s), null);
+        Tuple v = new Tuple(Double.POSITIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
         Collections.shuffle(l);
@@ -90,18 +82,18 @@ abstract class BaseAI implements IOthelloAI {
             Position a = moves.remove();
             GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
             new_s.insertToken(a);
-            Pair p = MaxValue(new_s, ply + 1, alpha, beta);
-            if (p.utility < v.utility) {
-                v = new Pair(p.utility, a);
-                if (v.utility < beta)
-                    beta = v.utility;
+            Tuple p = MaxValue(new_s, ply + 1, alpha, beta);
+            if (p.utility() < v.utility()) {
+                v = new Tuple(p.utility(), a);
+                if (v.utility() < beta)
+                    beta = v.utility();
             }
-            if (v.utility >= alpha)
+            if (v.utility() >= alpha)
                 return v;
         }
 
-        v.utility = v.utility == Double.POSITIVE_INFINITY || v.utility == Double.NEGATIVE_INFINITY ? Eval(s)
-                : v.utility;
+        v = new Tuple(v.utility() == Double.POSITIVE_INFINITY || v.utility() == Double.NEGATIVE_INFINITY ? Eval(s)
+                : v.utility(), v.move());
         explored.put(s, v);
         return v;
     }
@@ -109,9 +101,9 @@ abstract class BaseAI implements IOthelloAI {
     @Override
     public Position decideMove(GameState s) {
         explored = new TreeMap<>(new GameStateComparator());
-        Pair p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        Tuple p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
-        return p.move;
+        return p.move();
     }
 }
 
