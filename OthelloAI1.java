@@ -5,10 +5,10 @@ import java.util.PriorityQueue;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class OthelloAI1 implements IOthelloAI {
-    private static int depthLimit = 6;
-    private int me;
-    private static int[][] heuristic = {
+abstract class BaseAI implements IOthelloAI {
+    protected static int depthLimit = 6;
+    protected int me;
+    protected static int[][] heuristic = {
             { 4, -3, 2, 2, 2, 2, -3, 4 },
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 2, -1, 1, 0, 0, 1, -1, 2 },
@@ -20,7 +20,7 @@ public class OthelloAI1 implements IOthelloAI {
     };
     private Map<GameState, Pair> explored;
 
-    private class Pair {
+    protected class Pair {
         double utility;
         Position move;
 
@@ -34,36 +34,9 @@ public class OthelloAI1 implements IOthelloAI {
      * Simple utility function which is amount of tokens minus amount of enemy
      * tokens
      */
-    public double Eval(GameState s) {
-        int[][] board = s.getBoard();
-        double value = 0;
-        if (s.isFinished()) {
-            int[] tokens = s.countTokens();
-            if (tokens[me - 1] > tokens[me % 2])
-                value = Double.MAX_VALUE;
-            else if (tokens[me - 1] < tokens[me % 2])
-                value = Double.MIN_VALUE;
-            else
-                value = 0;
-        } else if (board.length != 8) {
-            int[] tokens = s.countTokens();
-            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
-        } else {
-            for (int i = 0; i < board.length; i++) {
-                for (int j = 0; j < board[i].length; j++) {
-                    if (board[i][j] == 0)
-                        continue;
-                    if (me == 1)
-                        value += board[i][j] == 1 ? heuristic[i][j] : -heuristic[i][j];
-                    else
-                        value += board[i][j] == 2 ? heuristic[i][j] : -heuristic[i][j];
-                }
-            }
-        }
-        return value;
-    }
+    protected abstract double Eval(GameState s);
 
-    public boolean isCutOff(GameState s, int ply) {
+    protected boolean isCutOff(GameState s, int ply) {
         if (ply > depthLimit)
             return true;
         if (s.isFinished())
@@ -71,7 +44,7 @@ public class OthelloAI1 implements IOthelloAI {
         return false;
     }
 
-    public Pair MaxValue(GameState s, int ply, double alpha, double beta) {
+    protected Pair MaxValue(GameState s, int ply, double alpha, double beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
@@ -102,7 +75,7 @@ public class OthelloAI1 implements IOthelloAI {
         return v;
     }
 
-    public Pair MinValue(GameState s, int ply, double alpha, double beta) {
+    protected Pair MinValue(GameState s, int ply, double alpha, double beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
@@ -133,6 +106,7 @@ public class OthelloAI1 implements IOthelloAI {
         return v;
     }
 
+    @Override
     public Position decideMove(GameState s) {
         explored = new TreeMap<>(new GameStateComparator());
         Pair p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -202,5 +176,76 @@ class GameStateComparator implements Comparator<GameState> {
         }
 
         return 0;
+    }
+}
+
+class OthelloAI1 extends BaseAI {
+    public OthelloAI1() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        int[][] board = s.getBoard();
+        double value = 0;
+        if (s.isFinished()) {
+            int[] tokens = s.countTokens();
+            if (tokens[me - 1] > tokens[me % 2])
+                value = Double.MAX_VALUE;
+            else if (tokens[me - 1] < tokens[me % 2])
+                value = Double.MIN_VALUE;
+            else
+                value = 0;
+        } else if (board.length != 8) {
+            int[] tokens = s.countTokens();
+            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        } else {
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == 0)
+                        continue;
+                    if (me == 1)
+                        value += board[i][j] == 1 ? heuristic[i][j] : -heuristic[i][j];
+                    else
+                        value += board[i][j] == 2 ? heuristic[i][j] : -heuristic[i][j];
+                }
+            }
+        }
+        return value;
+    }
+}
+
+class NonWeighted extends BaseAI {
+    public NonWeighted() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        double value = 0;
+        int[] tokens = s.countTokens();
+        value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        return value;
+    }
+}
+
+class Winning extends BaseAI {
+    public Winning() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        double value = 0;
+        if (s.isFinished()) {
+            int[] tokens = s.countTokens();
+            if (tokens[me - 1] > tokens[me % 2])
+                value = Double.MAX_VALUE;
+            else if (tokens[me - 1] < tokens[me % 2])
+                value = Double.MIN_VALUE;
+            else
+                value = 0;
+        } else {
+            int[] tokens = s.countTokens();
+            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        }
+        return value;
     }
 }
