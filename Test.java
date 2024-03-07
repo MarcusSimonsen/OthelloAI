@@ -33,6 +33,7 @@ public class Test {
         List<Future<Stat>> futures = new ArrayList<>();
         System.out.println(threads + " processors detected");
 
+        System.out.print("Tested 0 times");
         for (int i = 0; i < testAmount; i++) {
             Callable<Stat> task = () -> test(size, args);
             Future<Stat> future = executor.submit(task);
