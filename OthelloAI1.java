@@ -8,7 +8,7 @@ import java.util.TreeMap;
 abstract class BaseAI implements IOthelloAI {
     protected static int depthLimit = 6;
     protected int me;
-    protected static int[][] heuristic = {
+    protected static float[][] heuristic = {
             { 4, -3, 2, 2, 2, 2, -3, 4 },
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 2, -1, 1, 0, 0, 1, -1, 2 },
@@ -20,13 +20,13 @@ abstract class BaseAI implements IOthelloAI {
     };
     private Map<GameState, Tuple> explored;
 
-    protected record Tuple(Double utility, Position move) {}
+    protected record Tuple(Float utility, Position move) {}
 
     /**
      * Simple utility function which is amount of tokens minus amount of enemy
      * tokens
      */
-    protected abstract double Eval(GameState s);
+    protected abstract float Eval(GameState s);
 
     protected boolean isCutOff(GameState s, int ply) {
         if (ply > depthLimit)
@@ -36,12 +36,12 @@ abstract class BaseAI implements IOthelloAI {
         return false;
     }
 
-    protected Tuple MaxValue(GameState s, int ply, double alpha, double beta) {
+    protected Tuple MaxValue(GameState s, int ply, float alpha, float beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
             return new Tuple(Eval(s), null);
-        Tuple v = new Tuple(Double.NEGATIVE_INFINITY, null);
+        Tuple v = new Tuple(Float.NEGATIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
         Collections.shuffle(l);
@@ -61,18 +61,18 @@ abstract class BaseAI implements IOthelloAI {
                 return v;
         }
 
-        v = new Tuple(v.utility() == Double.POSITIVE_INFINITY || v.utility() == Double.NEGATIVE_INFINITY ? Eval(s)
+        v = new Tuple(v.utility() == Float.POSITIVE_INFINITY || v.utility() == Float.NEGATIVE_INFINITY ? Eval(s)
                 : v.utility(), v.move());
         explored.put(s, v);
         return v;
     }
 
-    protected Tuple MinValue(GameState s, int ply, double alpha, double beta) {
+    protected Tuple MinValue(GameState s, int ply, float alpha, float beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
             return new Tuple(Eval(s), null);
-        Tuple v = new Tuple(Double.POSITIVE_INFINITY, null);
+        Tuple v = new Tuple(Float.POSITIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
         Collections.shuffle(l);
@@ -92,7 +92,7 @@ abstract class BaseAI implements IOthelloAI {
                 return v;
         }
 
-        v = new Tuple(v.utility() == Double.POSITIVE_INFINITY || v.utility() == Double.NEGATIVE_INFINITY ? Eval(s)
+        v = new Tuple(v.utility() == Float.POSITIVE_INFINITY || v.utility() == Float.NEGATIVE_INFINITY ? Eval(s)
                 : v.utility(), v.move());
         explored.put(s, v);
         return v;
@@ -101,7 +101,7 @@ abstract class BaseAI implements IOthelloAI {
     @Override
     public Position decideMove(GameState s) {
         explored = new TreeMap<>(new GameStateComparator());
-        Tuple p = MaxValue(s, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        Tuple p = MaxValue(s, 0, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
         return p.move();
     }
@@ -176,15 +176,15 @@ class OthelloAI1 extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
+    protected float Eval(GameState s) {
         int[][] board = s.getBoard();
-        double value = 0;
+        float value = 0;
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
             if (tokens[me - 1] > tokens[me % 2])
-                value = Double.MAX_VALUE;
+                value = Float.MAX_VALUE;
             else if (tokens[me - 1] < tokens[me % 2])
-                value = Double.MIN_VALUE;
+                value = Float.MIN_VALUE;
             else
                 value = 0;
         } else if (board.length != 8) {
@@ -211,8 +211,8 @@ class Maximize extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
-        double value = 0;
+    protected float Eval(GameState s) {
+        float value = 0;
         int[] tokens = s.countTokens();
         value = me == 1 ? tokens[0] : tokens[1];
         return value;
@@ -224,14 +224,14 @@ class MaximizeWinning extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
-        double value = 0;
+    protected float Eval(GameState s) {
+        float value = 0;
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
             if (tokens[me - 1] > tokens[me % 2])
-                value = Double.MAX_VALUE;
+                value = Float.MAX_VALUE;
             else if (tokens[me - 1] < tokens[me % 2])
-                value = Double.MIN_VALUE;
+                value = Float.MIN_VALUE;
             else
                 value = 0;
         } else {
@@ -247,8 +247,8 @@ class Balance extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
-        double value = 0;
+    protected float Eval(GameState s) {
+        float value = 0;
         int[] tokens = s.countTokens();
         value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
         return value;
@@ -260,14 +260,14 @@ class BalanceWinning extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
-        double value = 0;
+    protected float Eval(GameState s) {
+        float value = 0;
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
             if (tokens[me - 1] > tokens[me % 2])
-                value = Double.MAX_VALUE;
+                value = Float.MAX_VALUE;
             else if (tokens[me - 1] < tokens[me % 2])
-                value = Double.MIN_VALUE;
+                value = Float.MIN_VALUE;
             else
                 value = 0;
         } else {
@@ -283,9 +283,9 @@ class MaximizeWeighted extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
+    protected float Eval(GameState s) {
         int[][] board = s.getBoard();
-        double value = 0;
+        float value = 0;
         if (board.length != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
@@ -310,9 +310,9 @@ class BalanceWeighted extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
+    protected float Eval(GameState s) {
         int[][] board = s.getBoard();
-        double value = 0;
+        float value = 0;
         if (board.length != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
@@ -337,15 +337,15 @@ class BalanceWeightedWinning extends BaseAI {
     }
 
     @Override
-    protected double Eval(GameState s) {
+    protected float Eval(GameState s) {
         int[][] board = s.getBoard();
-        double value = 0;
+        float value = 0;
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
             if (tokens[me - 1] > tokens[me % 2])
-                value = Double.MAX_VALUE;
+                value = Float.MAX_VALUE;
             else if (tokens[me - 1] < tokens[me % 2])
-                value = Double.MIN_VALUE;
+                value = Float.MIN_VALUE;
             else
                 value = 0;
         } else if (board.length != 8) {
