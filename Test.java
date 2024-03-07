@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
 
 public class Test {
+    private static int count = 0;
     public static void main(String[] args) {
         int testAmount = 100;
         int ai1Wins = 0;
@@ -21,15 +22,16 @@ public class Test {
         int ai2Moves = 0;
         int draws = 0;
         int size = 8;
-        int threads = Runtime.getRuntime().availableProcessors();
 
         if (args.length != 2) {
             System.err.println("Two arguments are required");
             return;
         }
 
+        int threads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         List<Future<Stat>> futures = new ArrayList<>();
+        System.out.println(threads + " processors detected");
 
         for (int i = 0; i < testAmount; i++) {
             Callable<Stat> task = () -> test(size, args);
@@ -64,6 +66,8 @@ public class Test {
         }
 
         executor.shutdown();
+
+        System.out.println();
 
         System.out.println("AI1 got " + ai1Wins + " wins");
         System.out.println("AI2 got " + ai2Wins + " wins");
@@ -145,6 +149,9 @@ public class Test {
             stat.winner = Result.AI2;
         else
             stat.winner = Result.DRAW;
+
+        count++;
+        System.out.print("\r" + "Tested " + count + " times");
 
         return stat;
     }
