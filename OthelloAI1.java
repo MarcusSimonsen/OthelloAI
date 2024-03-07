@@ -214,8 +214,44 @@ class OthelloAI1 extends BaseAI {
     }
 }
 
-class NonWeighted extends BaseAI {
-    public NonWeighted() {
+class Maximize extends BaseAI {
+    public Maximize() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        double value = 0;
+        int[] tokens = s.countTokens();
+        value = me == 1 ? tokens[0] : tokens[1];
+        return value;
+    }
+}
+
+class MaximizeWinning extends BaseAI {
+    public MaximizeWinning() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        double value = 0;
+        if (s.isFinished()) {
+            int[] tokens = s.countTokens();
+            if (tokens[me - 1] > tokens[me % 2])
+                value = Double.MAX_VALUE;
+            else if (tokens[me - 1] < tokens[me % 2])
+                value = Double.MIN_VALUE;
+            else
+                value = 0;
+        } else {
+            int[] tokens = s.countTokens();
+            value = me == 1 ? tokens[0] : tokens[1];
+        }
+        return value;
+    }
+}
+
+class Balance extends BaseAI {
+    public Balance() {
     }
 
     @Override
@@ -227,8 +263,8 @@ class NonWeighted extends BaseAI {
     }
 }
 
-class Winning extends BaseAI {
-    public Winning() {
+class BalanceWinning extends BaseAI {
+    public BalanceWinning() {
     }
 
     @Override
@@ -247,5 +283,95 @@ class Winning extends BaseAI {
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
         }
         return value;
+    }
+}
+
+class MaximizeWeighted extends BaseAI {
+    public MaximizeWeighted() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        int[][] board = s.getBoard();
+        double value = 0;
+        if (board.length != 8) {
+            int[] tokens = s.countTokens();
+            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        } else {
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == 0)
+                        continue;
+                    if (me == 1)
+                        value += board[i][j] == 1 ? heuristic[i][j] : 0;
+                    else
+                        value += board[i][j] == 2 ? heuristic[i][j] : 0;
+                }
+            }
+        }
+        return value;
+    }
+}
+
+class BalanceWeighted extends BaseAI {
+    public BalanceWeighted() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        int[][] board = s.getBoard();
+        double value = 0;
+        if (board.length != 8) {
+            int[] tokens = s.countTokens();
+            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        } else {
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == 0)
+                        continue;
+                    if (me == 1)
+                        value += board[i][j] == 1 ? heuristic[i][j] : -heuristic[i][j];
+                    else
+                        value += board[i][j] == 2 ? heuristic[i][j] : -heuristic[i][j];
+                }
+            }
+        }
+        return value;
+    }
+}
+
+class BalanceWeightedWinning extends BaseAI {
+    public BalanceWeightedWinning() {
+    }
+
+    @Override
+    protected double Eval(GameState s) {
+        int[][] board = s.getBoard();
+        double value = 0;
+        if (s.isFinished()) {
+            int[] tokens = s.countTokens();
+            if (tokens[me - 1] > tokens[me % 2])
+                value = Double.MAX_VALUE;
+            else if (tokens[me - 1] < tokens[me % 2])
+                value = Double.MIN_VALUE;
+            else
+                value = 0;
+        } else if (board.length != 8) {
+            int[] tokens = s.countTokens();
+            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        } else {
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == 0)
+                        continue;
+                    if (me == 1)
+                        value += board[i][j] == 1 ? heuristic[i][j] : -heuristic[i][j];
+                    else
+                        value += board[i][j] == 2 ? heuristic[i][j] : -heuristic[i][j];
+                }
+            }
+        }
+        return value;
+
     }
 }
