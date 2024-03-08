@@ -33,9 +33,7 @@ abstract class MiniMax implements IOthelloAI {
     protected boolean isCutOff(GS s, int ply) {
         if (ply > depthLimit)
             return true;
-        if (s.isFinished())
-            return true;
-        return false;
+        return s.isFinished();
     }
 
     protected Tuple MaxValue(GS s, int ply, float alpha, float beta) {
@@ -447,11 +445,11 @@ class GS {
      * and false otherwise.
      */
     public boolean isFinished() {
-        if (!legalMoves().isEmpty())
+        if (hasLegalMove())
             return false;
         else { // current player has no legal moves
             changePlayer();
-            if (legalMoves().isEmpty()) // next player also has no legal moves
+            if (!hasLegalMove()) // next player also has no legal moves
                 return true;
             else {
                 changePlayer();
@@ -542,6 +540,24 @@ class GS {
             }
         }
         return legalPlaces;
+    }
+
+    public boolean hasLegalMove() {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] != 0)
+                    continue;
+                Position p = new Position(i, j);
+                for (int deltaX = -1; deltaX <= 1; deltaX++) {
+                    for (int deltaY = -1; deltaY <= 1; deltaY++) {
+                        if (captureInDirection(p, deltaX, deltaY) > 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
