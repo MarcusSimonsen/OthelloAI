@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -114,7 +113,7 @@ public class TestAll {
                 for (Future<Stat> future : futures) {
                     try {
                         Stat stat = future.get();
-                        switch (stat.winner) {
+                        switch (stat.winner()) {
                             case Result.AI1:
                                 ai1Wins++;
                                 break;
@@ -125,12 +124,12 @@ public class TestAll {
                                 draws++;
                                 break;
                         }
-                        ai1TotalTime += stat.ai1TotalTime;
-                        ai2TotalTime += stat.ai2TotalTime;
-                        ai1LongestTime = Math.max(ai1LongestTime, stat.ai1LongestTime);
-                        ai2LongestTime = Math.max(ai2LongestTime, stat.ai2LongestTime);
-                        ai1Moves += stat.ai1Moves;
-                        ai2Moves += stat.ai2Moves;
+                        ai1TotalTime += stat.ai1TotalTime();
+                        ai2TotalTime += stat.ai2TotalTime();
+                        ai1LongestTime = Math.max(ai1LongestTime, stat.ai1LongestTime());
+                        ai2LongestTime = Math.max(ai2LongestTime, stat.ai2LongestTime());
+                        ai1Moves += stat.ai1Moves();
+                        ai2Moves += stat.ai2Moves();
 
                     } catch (InterruptedException | ExecutionException e) {
                         System.err.println(e);
@@ -209,7 +208,13 @@ public class TestAll {
         }
 
         GameState s = new GameState(size, 1);
-        Stat stat = new Stat();
+        long ai1TotalTime = 0;
+        long ai1LongestTime = 0;
+        int ai1Moves = 0;
+        long ai2TotalTime = 0;
+        long ai2LongestTime = 0;
+        int ai2Moves = 0;
+        Result winner;
         while (!s.isFinished()) {
             if (s.legalMoves().size() == 0) {
                 s.changePlayer();
@@ -219,13 +224,13 @@ public class TestAll {
             Position move = getPlaceForNextToken(s, ai1, ai2);
             long duration = System.nanoTime() - startTime;
             if (s.getPlayerInTurn() == 1) {
-                stat.ai1TotalTime += duration;
-                stat.ai1LongestTime = Math.max(stat.ai1LongestTime, duration);
-                stat.ai1Moves++;
+                ai1TotalTime += duration;
+                ai1LongestTime = Math.max(ai1LongestTime, duration);
+                ai1Moves++;
             } else {
-                stat.ai2TotalTime += duration;
-                stat.ai2LongestTime = Math.max(stat.ai2LongestTime, duration);
-                stat.ai2Moves++;
+                ai2TotalTime += duration;
+                ai2LongestTime = Math.max(ai2LongestTime, duration);
+                ai2Moves++;
             }
             if (!s.insertToken(move)) {
                 if (s.getPlayerInTurn() == 1)
@@ -236,25 +241,18 @@ public class TestAll {
         }
         int[] tokens = s.countTokens();
         if (tokens[0] > tokens[1])
-            stat.winner = Result.AI1;
+            winner = Result.AI1;
         else if (tokens[1] > tokens[0])
-            stat.winner = Result.AI2;
+            winner = Result.AI2;
         else
-            stat.winner = Result.DRAW;
+            winner = Result.DRAW;
 
         count++;
         System.out.print("\r" + "Tested " + count + " times");
 
-        return stat;
+        return new Stat(ai1TotalTime, ai2TotalTime, ai1LongestTime, ai2LongestTime, ai1Moves, ai2Moves, winner);
     }
 
-    /**
-     * Returns an instance of the specified class implementing IOthelloLogic
-     * 
-     * @param cmdParam String from the command line that should be a path to a java
-     *                 class implementing IOthelloLogic
-     * @throws TBD
-     */
     public static IOthelloAI parseGameLogicParam(String cmdParam)
             throws ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException,
@@ -274,18 +272,4 @@ public class TestAll {
     }
 }
 
-enum Result {
-    AI1,
-    AI2,
-    DRAW;
-}
 
-class Stat {
-    public long ai1TotalTime = 0;
-    public long ai2TotalTime = 0;
-    public long ai1LongestTime = 0;
-    public long ai2LongestTime = 0;
-    public int ai1Moves = 0;
-    public int ai2Moves = 0;
-    public Result winner;
-}
