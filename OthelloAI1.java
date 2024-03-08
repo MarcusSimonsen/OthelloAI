@@ -46,6 +46,8 @@ abstract class MiniMax implements IOthelloAI {
         Tuple v = new Tuple(Float.NEGATIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
+        if (ply == 0)
+            Collections.shuffle(l);
         PriorityQueue<Position> moves = new PriorityQueue<Position>(new MaxMoveComparator());
         moves.addAll(l);
         while (!moves.isEmpty()) {
@@ -76,6 +78,8 @@ abstract class MiniMax implements IOthelloAI {
         Tuple v = new Tuple(Float.POSITIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
+        if (ply == 0)
+            Collections.shuffle(l);
         PriorityQueue<Position> moves = new PriorityQueue<Position>(new MinMoveComparator());
         moves.addAll(l);
         while (!moves.isEmpty()) {
@@ -199,18 +203,6 @@ class GSComparator implements Comparator<GS> {
         }
 
         return 0;
-    }
-}
-
-class RandomizedArrayList<T> extends ArrayList<T> {
-    @Override
-    public boolean add(T e) {
-        boolean res = super.add(e);
-        int place = (int)(Math.random() * size());
-        T tmp = get(place);
-        set(place, e);
-        set(size() - 1, tmp);
-        return res;
     }
 }
 
@@ -532,7 +524,7 @@ class GS {
      * move for the current player.
      */
     public List<Position> legalMoves() {
-        List<Position> posPlaces = new RandomizedArrayList<Position>();
+        List<Position> posPlaces = new ArrayList<Position>();
         for (int i = 0; i < this.size; i++) {
             for (int j = 0; j < this.size; j++) {
                 if (board[i][j] == 0) {
@@ -540,7 +532,7 @@ class GS {
                 }
             }
         }
-        List<Position> legalPlaces = new RandomizedArrayList<Position>();
+        List<Position> legalPlaces = new ArrayList<Position>();
         for (Position p : posPlaces) {
             for (int deltaX = -1; deltaX <= 1; deltaX++) {
                 for (int deltaY = -1; deltaY <= 1; deltaY++) {
