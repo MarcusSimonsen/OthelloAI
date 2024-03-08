@@ -48,10 +48,7 @@ abstract class MiniMax implements IOthelloAI {
         List<Position> l = s.legalMoves();
         if (ply == 0)
             Collections.shuffle(l);
-        PriorityQueue<Position> moves = new PriorityQueue<Position>(new MaxMoveComparator());
-        moves.addAll(l);
-        while (!moves.isEmpty()) {
-            Position a = moves.remove();
+        for (Position a : l) {
             GS new_s = new GS(s);
             new_s.insertToken(a);
             Tuple p = MinValue(new_s, ply + 1, alpha, beta);
@@ -80,10 +77,7 @@ abstract class MiniMax implements IOthelloAI {
         List<Position> l = s.legalMoves();
         if (ply == 0)
             Collections.shuffle(l);
-        PriorityQueue<Position> moves = new PriorityQueue<Position>(new MinMoveComparator());
-        moves.addAll(l);
-        while (!moves.isEmpty()) {
-            Position a = moves.remove();
+        for (Position a : l) {
             GS new_s = new GS(s);
             new_s.insertToken(a);
             Tuple p = MaxValue(new_s, ply + 1, alpha, beta);
