@@ -46,6 +46,10 @@ abstract class MiniMax implements IOthelloAI {
         Tuple v = new Tuple(Float.NEGATIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
+        if (l.isEmpty()) {
+            s.changePlayer();
+            return MinValue(s, ply+1, alpha, beta);
+        }
         if (ply == 0)
             Collections.shuffle(l);
         PriorityQueue<Position> moves = new PriorityQueue<>(new MaxMoveComparator());
@@ -63,8 +67,6 @@ abstract class MiniMax implements IOthelloAI {
                 return v;
         }
 
-        v = new Tuple(v.utility() == Float.POSITIVE_INFINITY || v.utility() == Float.NEGATIVE_INFINITY ? Eval(s)
-                : v.utility(), v.move());
         explored.put(s, v);
         return v;
     }
@@ -77,6 +79,10 @@ abstract class MiniMax implements IOthelloAI {
         Tuple v = new Tuple(Float.POSITIVE_INFINITY, null);
 
         List<Position> l = s.legalMoves();
+        if (l.isEmpty()) {
+            s.changePlayer();
+            return MaxValue(s, ply+1, alpha, beta);
+        }
         if (ply == 0)
             Collections.shuffle(l);
         PriorityQueue<Position> moves = new PriorityQueue(new MinMoveComparator());
@@ -94,17 +100,12 @@ abstract class MiniMax implements IOthelloAI {
                 return v;
         }
 
-        v = new Tuple(v.utility() == Float.POSITIVE_INFINITY || v.utility() == Float.NEGATIVE_INFINITY ? Eval(s)
-                : v.utility(), v.move());
         explored.put(s, v);
         return v;
     }
 
     @Override
     public Position decideMove(GameState s) {
-        int[] tokens = new GS(s).countTokens();
-        // System.out.println("Black: " + tokens[0]);
-        // System.out.println("White: " + tokens[1]);
         explored = new TreeMap<>(new GSComparator());
         Tuple p = MaxValue(new GS(s), 0, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
