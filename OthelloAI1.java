@@ -83,7 +83,7 @@ abstract class MiniMax implements IOthelloAI {
         }
         if (ply == 0)
             Collections.shuffle(l);
-        PriorityQueue<Position> moves = new PriorityQueue(new MinMoveComparator());
+        PriorityQueue<Position> moves = new PriorityQueue<Position>(new MinMoveComparator());
         moves.addAll(l);
         for (Position a : moves) {
             GS new_s = new GS(s);
@@ -112,7 +112,7 @@ abstract class MiniMax implements IOthelloAI {
 }
 
 class MaxMoveComparator implements Comparator<Position> {
-    private static int[][] heuristic = {
+    private static final int[][] heuristic = {
             { 4, -3, 2, 2, 2, 2, -3, 4 },
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 2, -1, 1, 0, 0, 1, -1, 2 },
@@ -130,7 +130,7 @@ class MaxMoveComparator implements Comparator<Position> {
 }
 
 class MinMoveComparator implements Comparator<Position> {
-    private static int[][] heuristic = {
+    private static final int[][] heuristic = {
             { 4, -3, 2, 2, 2, 2, -3, 4 },
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 2, -1, 1, 0, 0, 1, -1, 2 },
@@ -147,45 +147,13 @@ class MinMoveComparator implements Comparator<Position> {
     }
 }
 
-class GameStateComparator implements Comparator<GameState> {
-    @Override
-    public int compare(GameState s1, GameState s2) {
-        int size1 = s1.getBoard().length;
-        int size2 = s2.getBoard().length;
-        if (size1 != size2) {
-            if (size1 < size2)
-                return -1;
-            else if (size2 < size1)
-                return 1;
-            return 0;
-        } else {
-            int[][] b1 = s1.getBoard();
-            int[][] b2 = s2.getBoard();
-
-            for (int i = 0; i < b1.length; i++) {
-                for (int j = 0; j < b1[i].length; j++) {
-                    if (b1[i][j] != b2[i][j]) {
-                        return b1[i][j] < b2[i][j] ? -1 : 1;
-                    }
-                }
-            }
-        }
-
-        return 0;
-    }
-}
-
 class GSComparator implements Comparator<GS> {
     @Override
     public int compare(GS s1, GS s2) {
         int size1 = s1.getBoard().length;
         int size2 = s2.getBoard().length;
         if (size1 != size2) {
-            if (size1 < size2)
-                return -1;
-            else if (size2 < size1)
-                return 1;
-            return 0;
+            return size1 - size2;
         } else {
             int[][] b1 = s1.getBoard();
             int[][] b2 = s2.getBoard();
@@ -401,8 +369,7 @@ class GS {
         int[][] board = s.getBoard();
         this.board = new int[s.getSize()][s.getSize()];
         for (int i = 0; i < this.board.length; i++)
-            for (int j = 0; j < this.board[i].length; j++)
-                this.board[i][j] = board[i][j];
+            System.arraycopy(board[i], 0, this.board[i], 0, this.board[i].length);
         this.currentPlayer = s.getPlayerInTurn();
         this.size = s.getSize();
         this.blackTokens = s.blackTokens;
