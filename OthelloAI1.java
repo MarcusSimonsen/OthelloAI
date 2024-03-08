@@ -510,7 +510,6 @@ class GS {
         if (capturesFound) {
             // Place the token at the given place
             board[place.col][place.row] = currentPlayer;
-            this.changePlayer();
             switch (currentPlayer) {
                 case BLACK:
                     blackTokens += captures + 1;
@@ -521,6 +520,7 @@ class GS {
                     whiteTokens += captures + 1;
                     break;
             }
+            this.changePlayer();
             return true;
         } else {
             return false;
