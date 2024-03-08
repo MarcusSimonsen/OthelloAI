@@ -1,11 +1,12 @@
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Map;
 import java.util.TreeMap;
 
-abstract class BaseAI implements IOthelloAI {
+abstract class MiniMax implements IOthelloAI {
     protected static int depthLimit = 6;
     protected int me;
     protected static float[][] heuristic = {
@@ -18,7 +19,7 @@ abstract class BaseAI implements IOthelloAI {
             { -3, -4, -1, -1, -1, -1, -4, -3 },
             { 4, -3, 2, 2, 2, 2, -3, 4 }
     };
-    private Map<GameState, Tuple> explored;
+    private Map<GS, Tuple> explored;
 
     protected record Tuple(Float utility, Position move) {
     }
@@ -27,9 +28,9 @@ abstract class BaseAI implements IOthelloAI {
      * Simple utility function which is amount of tokens minus amount of enemy
      * tokens
      */
-    protected abstract float Eval(GameState s);
+    protected abstract float Eval(GS s);
 
-    protected boolean isCutOff(GameState s, int ply) {
+    protected boolean isCutOff(GS s, int ply) {
         if (ply > depthLimit)
             return true;
         if (s.isFinished())
@@ -37,7 +38,7 @@ abstract class BaseAI implements IOthelloAI {
         return false;
     }
 
-    protected Tuple MaxValue(GameState s, int ply, float alpha, float beta) {
+    protected Tuple MaxValue(GS s, int ply, float alpha, float beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
@@ -50,7 +51,7 @@ abstract class BaseAI implements IOthelloAI {
         moves.addAll(l);
         while (!moves.isEmpty()) {
             Position a = moves.remove();
-            GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
+            GS new_s = new GS(s);
             new_s.insertToken(a);
             Tuple p = MinValue(new_s, ply + 1, alpha, beta);
             if (p.utility() > v.utility()) {
@@ -68,7 +69,7 @@ abstract class BaseAI implements IOthelloAI {
         return v;
     }
 
-    protected Tuple MinValue(GameState s, int ply, float alpha, float beta) {
+    protected Tuple MinValue(GS s, int ply, float alpha, float beta) {
         if (explored.containsKey(s))
             return explored.get(s);
         if (isCutOff(s, ply))
@@ -81,7 +82,7 @@ abstract class BaseAI implements IOthelloAI {
         moves.addAll(l);
         while (!moves.isEmpty()) {
             Position a = moves.remove();
-            GameState new_s = new GameState(s.getBoard(), s.getPlayerInTurn());
+            GS new_s = new GS(s);
             new_s.insertToken(a);
             Tuple p = MaxValue(new_s, ply + 1, alpha, beta);
             if (p.utility() < v.utility()) {
@@ -101,8 +102,11 @@ abstract class BaseAI implements IOthelloAI {
 
     @Override
     public Position decideMove(GameState s) {
-        explored = new TreeMap<>(new GameStateComparator());
-        Tuple p = MaxValue(s, 0, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
+        int[] tokens = new GS(s).countTokens();
+        // System.out.println("Black: " + tokens[0]);
+        // System.out.println("White: " + tokens[1]);
+        explored = new TreeMap<>(new GSComparator());
+        Tuple p = MaxValue(new GS(s), 0, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
         me = s.getPlayerInTurn();
         return p.move();
     }
@@ -172,12 +176,39 @@ class GameStateComparator implements Comparator<GameState> {
     }
 }
 
-class Maximize extends BaseAI {
+class GSComparator implements Comparator<GS> {
+    @Override
+    public int compare(GS s1, GS s2) {
+        int size1 = s1.getBoard().length;
+        int size2 = s2.getBoard().length;
+        if (size1 != size2) {
+            if (size1 < size2)
+                return -1;
+            else if (size2 < size1)
+                return 1;
+            return 0;
+        } else {
+            int[][] b1 = s1.getBoard();
+            int[][] b2 = s2.getBoard();
+
+            for (int i = 0; i < b1.length; i++) {
+                for (int j = 0; j < b1[i].length; j++) {
+                    if (b1[i][j] != b2[i][j]) {
+                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+}
+class Maximize extends MiniMax {
     public Maximize() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         float value = 0;
         int[] tokens = s.countTokens();
         value = me == 1 ? tokens[0] : tokens[1];
@@ -185,12 +216,12 @@ class Maximize extends BaseAI {
     }
 }
 
-class MaximizeWinning extends BaseAI {
+class MaximizeWinning extends MiniMax {
     public MaximizeWinning() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         float value = 0;
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
@@ -208,12 +239,12 @@ class MaximizeWinning extends BaseAI {
     }
 }
 
-class Balance extends BaseAI {
+class Balance extends MiniMax {
     public Balance() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         float value = 0;
         int[] tokens = s.countTokens();
         value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
@@ -221,12 +252,12 @@ class Balance extends BaseAI {
     }
 }
 
-class BalanceWinning extends BaseAI {
+class BalanceWinning extends MiniMax {
     public BalanceWinning() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         float value = 0;
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
@@ -244,12 +275,12 @@ class BalanceWinning extends BaseAI {
     }
 }
 
-class MaximizeWeighted extends BaseAI {
+class MaximizeWeighted extends MiniMax {
     public MaximizeWeighted() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         int[][] board = s.getBoard();
         float value = 0;
         if (board.length != 8) {
@@ -271,12 +302,12 @@ class MaximizeWeighted extends BaseAI {
     }
 }
 
-class BalanceWeighted extends BaseAI {
+class BalanceWeighted extends MiniMax {
     public BalanceWeighted() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         int[][] board = s.getBoard();
         float value = 0;
         if (board.length != 8) {
@@ -298,12 +329,12 @@ class BalanceWeighted extends BaseAI {
     }
 }
 
-class BalanceWeightedWinning extends BaseAI {
+class BalanceWeightedWinning extends MiniMax {
     public BalanceWeightedWinning() {
     }
 
     @Override
-    protected float Eval(GameState s) {
+    protected float Eval(GS s) {
         int[][] board = s.getBoard();
         float value = 0;
         if (s.isFinished()) {
@@ -332,4 +363,213 @@ class BalanceWeightedWinning extends BaseAI {
         return value;
 
     }
+}
+
+class GS {
+    private final int EMPTY = 0;
+    private final int BLACK = 1;
+    private final int WHITE = 2;
+    private int[][] board; // Possible values: 0 (empty), 1 (black), 2 (white)
+    private int currentPlayer; // The player who is next to put a token on the board. Value is 1 or 2.
+    private int size; // The number of columns = the number of rows on the board
+    private int blackTokens; // Number of black tokens on board
+    private int whiteTokens; // Number of white tokens on board
+
+    // ************ Constructors ****************//
+    public GS(GameState s) {
+        int[][] board = s.getBoard();
+        this.size = board.length;
+        this.board = new int[size][size];
+        this.blackTokens = 0;
+        this.whiteTokens = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                this.board[i][j] = board[i][j];
+                switch (board[i][j]) {
+                    case BLACK:
+                        this.blackTokens++;
+                        break;
+                    case WHITE:
+                        this.whiteTokens++;
+                }
+            }
+        }
+        this.currentPlayer = s.getPlayerInTurn();
+    }
+
+    public GS(GS s) {
+        int[][] board = s.getBoard();
+        this.board = new int[s.getSize()][s.getSize()];
+        for (int i = 0; i < this.board.length; i++)
+            for (int j = 0; j < this.board[i].length; j++)
+                this.board[i][j] = board[i][j];
+        this.currentPlayer = s.getPlayerInTurn();
+        this.size = s.getSize();
+        this.blackTokens = s.blackTokens;
+        this.whiteTokens = s.whiteTokens;
+    }
+
+    // ************ Getter methods *******************//
+    /**
+     * Returns the array representing the board of this game state
+     */
+    public int[][] getBoard() {
+        return board;
+    }
+
+    /**
+     * Returns the player whose turn it is, i.e. 1 (black) or 2 (white).
+     */
+    public int getPlayerInTurn() {
+        return currentPlayer;
+    }
+
+    /**
+     * Returns the size of the board
+     */
+    public int getSize() {
+        return size;
+    }
+
+    // ************* Methods ****************//
+    /**
+     * Skips the turn of the current player (without) changing the board.
+     */
+    public void changePlayer() {
+        currentPlayer = currentPlayer == 1 ? 2 : 1;
+    }
+
+    /**
+     * Returns true if the game is finished (i.e. none of the players can make any
+     * legal moves)
+     * and false otherwise.
+     */
+    public boolean isFinished() {
+        if (!legalMoves().isEmpty())
+            return false;
+        else { // current player has no legal moves
+            changePlayer();
+            if (legalMoves().isEmpty()) // next player also has no legal moves
+                return true;
+            else {
+                changePlayer();
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Counts tokens of the player 1 (black) and player 2 (white), respectively, and
+     * returns an array
+     * with the numbers in that order.
+     */
+    public int[] countTokens() {
+        return new int[] { blackTokens, whiteTokens };
+    }
+
+    /**
+     * If it is legal for the current player to put a token at the given place, then
+     * the token is inserted, the required
+     * tokens from the opponent is turned, and true is returned. If the move is not
+     * legal, false is returned.
+     * False is also returned if the given place does not represent a place on the
+     * board.
+     */
+    public boolean insertToken(Position place) {
+        if (place.col < 0 || place.row < 0 || place.col >= size || place.row >= size) // not a position on the board
+            return false;
+        if (board[place.col][place.row] != 0) // The position is not empty
+            return false;
+
+        boolean capturesFound = false;
+        int captures = 0;
+        // Capturing all possible opponents of the current player
+        for (int deltaX = -1; deltaX <= 1; deltaX++) {
+            for (int deltaY = -1; deltaY <= 1; deltaY++) {
+                int captives = captureInDirection(place, deltaX, deltaY);
+                captures += captives;
+                if (captives > 0) {
+                    capturesFound = true;
+                    for (int i = 1; i <= captives; i++)
+                        board[place.col + deltaX * i][place.row + deltaY * i] = currentPlayer;
+                }
+            }
+        }
+
+        if (capturesFound) {
+            // Place the token at the given place
+            board[place.col][place.row] = currentPlayer;
+            this.changePlayer();
+            switch (currentPlayer) {
+                case BLACK:
+                    blackTokens += captures + 1;
+                    whiteTokens -= captures;
+                    break;
+                case WHITE:
+                    blackTokens -= captures;
+                    whiteTokens += captures + 1;
+                    break;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns a list of all the positions on the board that constitutes a legal
+     * move for the current player.
+     */
+    public ArrayList<Position> legalMoves() {
+        ArrayList<Position> posPlaces = new ArrayList<Position>();
+        for (int i = 0; i < this.size; i++) {
+            for (int j = 0; j < this.size; j++) {
+                if (board[i][j] == 0) {
+                    posPlaces.add(new Position(i, j));
+                }
+            }
+        }
+        ArrayList<Position> legalPlaces = new ArrayList<Position>();
+        for (Position p : posPlaces) {
+            for (int deltaX = -1; deltaX <= 1; deltaX++) {
+                for (int deltaY = -1; deltaY <= 1; deltaY++) {
+                    if (captureInDirection(p, deltaX, deltaY) > 0) {
+                        legalPlaces.add(p);
+                    }
+                }
+            }
+        }
+        return legalPlaces;
+    }
+
+    /**
+     * Checks how many tokens of the opponent the player can capture in the
+     * direction given by deltaX and deltaY
+     * if the player puts a token at the given position.
+     * 
+     * @param p      A position on the board
+     * @param deltaX The step to be taken in the x-direction. Should be -1 (left), 0
+     *               (none), or 1 (right).
+     * @param deltaY The step to be taken in the delta direction. Should be -1 (up),
+     *               0 (none), or 1 (down).
+     */
+    private int captureInDirection(Position p, int deltaX, int deltaY) {
+        int opponent = (currentPlayer == 1 ? 2 : 1);
+
+        int captured = 0;
+        int cc = p.col;
+        int rr = p.row;
+        while (0 <= cc + deltaX && cc + deltaX < size && 0 <= rr + deltaY && rr + deltaY < size
+                && board[cc + deltaX][rr + deltaY] == opponent) {
+            cc = cc + deltaX;
+            rr = rr + deltaY;
+            captured++;
+        }
+        if (0 <= cc + deltaX && cc + deltaX < size && 0 <= rr + deltaY && rr + deltaY < size
+                && board[cc + deltaX][rr + deltaY] == currentPlayer && captured > 0) {
+            return captured;
+        } else
+            return 0;
+    }
+
 }
