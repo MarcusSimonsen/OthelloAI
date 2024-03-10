@@ -150,16 +150,41 @@ class MinMoveComparator implements Comparator<Position> {
 class GSComparator implements Comparator<GS> {
     @Override
     public int compare(GS s1, GS s2) {
-        int size1 = s1.getBoard().length;
-        int size2 = s2.getBoard().length;
+        int size1 = s1.getSize();
+        int size2 = s2.getSize();
         if (size1 != size2) {
             return size1 - size2;
         } else {
             int[][] b1 = s1.getBoard();
             int[][] b2 = s2.getBoard();
-
-            for (int i = 0; i < b1.length; i++) {
-                for (int j = 0; j < b1[i].length; j++) {
+            int half = size1 / 2;
+            // Upper left quadrant
+            for (int i = half-1; i >= 0; i--) {
+                for (int j = half-1; j >= 0; j--) {
+                    if (b1[i][j] != b2[i][j]) {
+                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    }
+                }
+            }
+            // Upper right quadrant
+            for (int i = half-1; i >= 0; i--) {
+                for (int j = half; j < size1; j++) {
+                    if (b1[i][j] != b2[i][j]) {
+                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    }
+                }
+            }
+            // Lower left quadrant
+            for (int i = half; i < size1; i++) {
+                for (int j = half-1; j >= 0; j--) {
+                    if (b1[i][j] != b2[i][j]) {
+                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    }
+                }
+            }
+            // Lower right quadrant
+            for (int i = half; i < size1; i++) {
+                for (int j = half; j < size1; j++) {
                     if (b1[i][j] != b2[i][j]) {
                         return b1[i][j] < b2[i][j] ? -1 : 1;
                     }
@@ -544,11 +569,26 @@ class GS {
         int captured = 0;
         int cc = p.col;
         int rr = p.row;
-        while (0 <= cc + deltaX && cc + deltaX < size && 0 <= rr + deltaY && rr + deltaY < size
-                && board[cc + deltaX][rr + deltaY] == opponent) {
-            cc = cc + deltaX;
-            rr = rr + deltaY;
-            captured++;
+        if (deltaX == 0) {
+            while (0 <= rr + deltaY && rr + deltaY < size && board[cc][rr + deltaY] == opponent) {
+                rr += deltaY;
+                captured++;
+            }
+        }
+        else if (deltaY == 0) {
+            while (0 <= cc + deltaX && cc + deltaX < size && board[cc + deltaX][rr] == opponent) {
+                cc += deltaX;
+                captured++;
+            }
+        }
+        else {
+            while (0 <= rr + deltaY && rr + deltaY < size
+                    && 0 <= cc + deltaX && cc + deltaX < size
+                    && board[cc + deltaX][rr + deltaY] == opponent) {
+                cc += deltaX;
+                rr += deltaY;
+                captured++;
+            }
         }
         if (0 <= cc + deltaX && cc + deltaX < size && 0 <= rr + deltaY && rr + deltaY < size
                 && board[cc + deltaX][rr + deltaY] == currentPlayer && captured > 0) {
