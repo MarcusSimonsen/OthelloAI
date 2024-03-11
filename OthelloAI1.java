@@ -155,38 +155,36 @@ class GSComparator implements Comparator<GS> {
         if (size1 != size2) {
             return size1 - size2;
         } else {
-            int[][] b1 = s1.getBoard();
-            int[][] b2 = s2.getBoard();
             int half = size1 / 2;
             // Upper left quadrant
             for (int i = half-1; i >= 0; i--) {
                 for (int j = half-1; j >= 0; j--) {
-                    if (b1[i][j] != b2[i][j]) {
-                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
+                        return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
                     }
                 }
             }
             // Upper right quadrant
             for (int i = half-1; i >= 0; i--) {
                 for (int j = half; j < size1; j++) {
-                    if (b1[i][j] != b2[i][j]) {
-                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
+                        return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
                     }
                 }
             }
             // Lower left quadrant
             for (int i = half; i < size1; i++) {
                 for (int j = half-1; j >= 0; j--) {
-                    if (b1[i][j] != b2[i][j]) {
-                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
+                        return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
                     }
                 }
             }
             // Lower right quadrant
             for (int i = half; i < size1; i++) {
                 for (int j = half; j < size1; j++) {
-                    if (b1[i][j] != b2[i][j]) {
-                        return b1[i][j] < b2[i][j] ? -1 : 1;
+                    if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
+                        return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
                     }
                 }
             }
@@ -274,20 +272,20 @@ class MaximizeWeighted extends MiniMax {
 
     @Override
     protected float Eval(GS s) {
-        int[][] board = s.getBoard();
         float value = 0;
-        if (board.length != 8) {
+        int size = s.getSize();
+        if (size != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
         } else {
-            for (int i = 0; i < board.length; i++) {
-                for (int j = 0; j < board[i].length; j++) {
-                    if (board[i][j] == 0)
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    if (s.getPlace(i, j) == 0)
                         continue;
                     if (me == 1)
-                        value += board[i][j] == 1 ? heuristic[i][j] : 0;
+                        value += s.getPlace(i, j) == 1 ? heuristic[i][j] : 0;
                     else
-                        value += board[i][j] == 2 ? heuristic[i][j] : 0;
+                        value += s.getPlace(i, j) == 2 ? heuristic[i][j] : 0;
                 }
             }
         }
@@ -301,20 +299,20 @@ class BalanceWeighted extends MiniMax {
 
     @Override
     protected float Eval(GS s) {
-        int[][] board = s.getBoard();
         float value = 0;
-        if (board.length != 8) {
+        int size = s.getSize();
+        if (size != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
         } else {
-            for (int i = 0; i < board.length; i++) {
-                for (int j = 0; j < board[i].length; j++) {
-                    if (board[i][j] == 0)
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    if (s.getPlace(i, j) == 0)
                         continue;
                     if (me == 1)
-                        value += board[i][j] == 1 ? heuristic[i][j] : -heuristic[i][j];
+                        value += s.getPlace(i, j) == 1 ? heuristic[i][j] : -heuristic[i][j];
                     else
-                        value += board[i][j] == 2 ? heuristic[i][j] : -heuristic[i][j];
+                        value += s.getPlace(i, j) == 2 ? heuristic[i][j] : -heuristic[i][j];
                 }
             }
         }
@@ -328,8 +326,8 @@ class BalanceWeightedWinning extends MiniMax {
 
     @Override
     protected float Eval(GS s) {
-        int[][] board = s.getBoard();
         float value = 0;
+        int size = s.getSize();
         if (s.isFinished()) {
             int[] tokens = s.countTokens();
             if (tokens[me - 1] > tokens[me % 2])
@@ -338,18 +336,18 @@ class BalanceWeightedWinning extends MiniMax {
                 value = Float.MIN_VALUE;
             else
                 value = 0;
-        } else if (board.length != 8) {
+        } else if (size != 8) {
             int[] tokens = s.countTokens();
             value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
         } else {
-            for (int i = 0; i < board.length; i++) {
-                for (int j = 0; j < board[i].length; j++) {
-                    if (board[i][j] == 0)
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    if (s.getPlace(i, j) == 0)
                         continue;
                     if (me == 1)
-                        value += board[i][j] == 1 ? heuristic[i][j] : -heuristic[i][j];
+                        value += s.getPlace(i, j) == 1 ? heuristic[i][j] : -heuristic[i][j];
                     else
-                        value += board[i][j] == 2 ? heuristic[i][j] : -heuristic[i][j];
+                        value += s.getPlace(i, j) == 2 ? heuristic[i][j] : -heuristic[i][j];
                 }
             }
         }
@@ -377,7 +375,7 @@ class GS {
         this.whiteTokens = 0;
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                this.board[i][j] = board[i][j];
+                setPlace(i, j, board[i][j]);
                 switch (board[i][j]) {
                     case BLACK:
                         this.blackTokens++;
@@ -393,7 +391,7 @@ class GS {
     public GS(GS s) {
         int[][] board = s.getBoard();
         this.board = new int[s.getSize()][s.getSize()];
-        for (int i = 0; i < this.board.length; i++)
+        for (int i = 0; i < s.getSize(); i++)
             System.arraycopy(board[i], 0, this.board[i], 0, this.board[i].length);
         this.currentPlayer = s.getPlayerInTurn();
         this.size = s.getSize();
@@ -407,6 +405,13 @@ class GS {
      */
     public int[][] getBoard() {
         return board;
+    }
+
+    /**
+     * Returns 0 if place is blank, 1 if blacn and 2 if white
+     */
+    public int getPlace(int i, int j) {
+        return board[i][j];
     }
 
     /**
@@ -424,6 +429,16 @@ class GS {
     }
 
     // ************* Methods ****************//
+    /**
+     * Sets the tile at the specified location to the given value:
+     * 0: blank
+     * 1: black
+     * 2: white
+     */
+    public void setPlace(int i, int j, int value) {
+        board[i][j] = value;
+    }
+
     /**
      * Skips the turn of the current player (without) changing the board.
      */
@@ -470,7 +485,7 @@ class GS {
     public boolean insertToken(Position place) {
         if (place.col < 0 || place.row < 0 || place.col >= size || place.row >= size) // not a position on the board
             return false;
-        if (board[place.col][place.row] != 0) // The position is not empty
+        if (getPlace(place.col, place.row) != 0) // The position is not empty
             return false;
 
         boolean capturesFound = false;
@@ -483,14 +498,14 @@ class GS {
                 if (captives > 0) {
                     capturesFound = true;
                     for (int i = 1; i <= captives; i++)
-                        board[place.col + deltaX * i][place.row + deltaY * i] = currentPlayer;
+                        setPlace(place.col + deltaX * i, place.row + deltaY * i, currentPlayer);
                 }
             }
         }
 
         if (capturesFound) {
             // Place the token at the given place
-            board[place.col][place.row] = currentPlayer;
+            setPlace(place.col, place.row, currentPlayer);
             switch (currentPlayer) {
                 case BLACK:
                     blackTokens += captures + 1;
@@ -516,7 +531,7 @@ class GS {
         List<Position> posPlaces = new ArrayList<Position>();
         for (int i = 0; i < this.size; i++) {
             for (int j = 0; j < this.size; j++) {
-                if (board[i][j] == 0) {
+                if (getPlace(i, j) == 0) {
                     posPlaces.add(new Position(i, j));
                 }
             }
@@ -537,7 +552,7 @@ class GS {
     public boolean hasLegalMove() {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                if (board[i][j] != 0)
+                if (getPlace(i, j) != 0)
                     continue;
                 Position p = new Position(i, j);
                 for (int deltaX = -1; deltaX <= 1; deltaX++) {
@@ -570,13 +585,13 @@ class GS {
         int cc = p.col;
         int rr = p.row;
         if (deltaX == 0) {
-            while (0 <= rr + deltaY && rr + deltaY < size && board[cc][rr + deltaY] == opponent) {
+            while (0 <= rr + deltaY && rr + deltaY < size && getPlace(cc, rr + deltaY) == opponent) {
                 rr += deltaY;
                 captured++;
             }
         }
         else if (deltaY == 0) {
-            while (0 <= cc + deltaX && cc + deltaX < size && board[cc + deltaX][rr] == opponent) {
+            while (0 <= cc + deltaX && cc + deltaX < size && getPlace(cc + deltaX, rr) == opponent) {
                 cc += deltaX;
                 captured++;
             }
@@ -584,14 +599,14 @@ class GS {
         else {
             while (0 <= rr + deltaY && rr + deltaY < size
                     && 0 <= cc + deltaX && cc + deltaX < size
-                    && board[cc + deltaX][rr + deltaY] == opponent) {
+                    && getPlace(cc + deltaX, rr + deltaY) == opponent) {
                 cc += deltaX;
                 rr += deltaY;
                 captured++;
             }
         }
         if (0 <= cc + deltaX && cc + deltaX < size && 0 <= rr + deltaY && rr + deltaY < size
-                && board[cc + deltaX][rr + deltaY] == currentPlayer && captured > 0) {
+                && getPlace(cc + deltaX, rr + deltaY) == currentPlayer && captured > 0) {
             return captured;
         } else
             return 0;
