@@ -41,13 +41,13 @@ abstract class MiniMax implements IOthelloAI {
             return explored.get(s);
         if (isCutOff(s, ply))
             return new Tuple(Eval(s), null);
-        Tuple v = new Tuple(Float.NEGATIVE_INFINITY, null);
-
-        List<Position> l = s.legalMoves();
-        if (l.isEmpty()) {
+        if (!s.hasLegalMove()) {
             s.changePlayer();
             return MinValue(s, ply+1, alpha, beta);
         }
+        Tuple v = new Tuple(Float.NEGATIVE_INFINITY, null);
+
+        List<Position> l = s.legalMoves();
         if (ply == 0)
             Collections.shuffle(l);
         PriorityQueue<Position> moves = new PriorityQueue<>(new MaxMoveComparator());
@@ -74,13 +74,13 @@ abstract class MiniMax implements IOthelloAI {
             return explored.get(s);
         if (isCutOff(s, ply))
             return new Tuple(Eval(s), null);
-        Tuple v = new Tuple(Float.POSITIVE_INFINITY, null);
-
-        List<Position> l = s.legalMoves();
-        if (l.isEmpty()) {
+        if (!s.hasLegalMove()) {
             s.changePlayer();
             return MaxValue(s, ply+1, alpha, beta);
         }
+        Tuple v = new Tuple(Float.POSITIVE_INFINITY, null);
+
+        List<Position> l = s.legalMoves();
         if (ply == 0)
             Collections.shuffle(l);
         PriorityQueue<Position> moves = new PriorityQueue<Position>(new MinMoveComparator());
