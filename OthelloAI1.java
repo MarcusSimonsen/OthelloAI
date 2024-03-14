@@ -390,11 +390,11 @@ class GS {
 
     public GS(GS s) {
         int[][] board = s.getBoard();
-        this.board = new int[s.getSize()][s.getSize()];
+        this.size = s.getSize();
+        this.board = new int[this.size][this.size];
         for (int i = 0; i < s.getSize(); i++)
             System.arraycopy(board[i], 0, this.board[i], 0, this.board[i].length);
         this.currentPlayer = s.getPlayerInTurn();
-        this.size = s.getSize();
         this.blackTokens = s.blackTokens;
         this.whiteTokens = s.whiteTokens;
     }
