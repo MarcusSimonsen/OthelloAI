@@ -13,7 +13,7 @@ public class TestAll {
     private static int count = 0;
 
     public static void main(String[] args) throws IOException {
-        int testAmount = 10;
+        int testAmount = 100;
         int size = 8;
 
         FileWriter winsFile;
