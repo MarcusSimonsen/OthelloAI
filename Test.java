@@ -44,13 +44,13 @@ public class Test {
             try {
                 Stat stat = future.get();
                 switch (stat.winner()) {
-                    case Result.AI1:
+                    case AI1:
                         ai1Wins++;
                         break;
-                    case Result.AI2:
+                    case AI2:
                         ai2Wins++;
                         break;
-                    case Result.DRAW:
+                    case DRAW:
                         draws++;
                         break;
                 }
