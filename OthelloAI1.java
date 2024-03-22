@@ -43,7 +43,7 @@ abstract class MiniMax implements IOthelloAI {
             return new Tuple(Eval(s), null);
         if (!s.hasLegalMove()) {
             s.changePlayer();
-            return MinValue(s, ply+1, alpha, beta);
+            return MinValue(s, ply + 1, alpha, beta);
         }
         Tuple v = new Tuple(Float.NEGATIVE_INFINITY, null);
 
@@ -76,7 +76,7 @@ abstract class MiniMax implements IOthelloAI {
             return new Tuple(Eval(s), null);
         if (!s.hasLegalMove()) {
             s.changePlayer();
-            return MaxValue(s, ply+1, alpha, beta);
+            return MaxValue(s, ply + 1, alpha, beta);
         }
         Tuple v = new Tuple(Float.POSITIVE_INFINITY, null);
 
@@ -157,15 +157,15 @@ class GSComparator implements Comparator<GS> {
         } else {
             int half = size1 / 2;
             // Upper left quadrant
-            for (int i = half-1; i >= 0; i--) {
-                for (int j = half-1; j >= 0; j--) {
+            for (int i = half - 1; i >= 0; i--) {
+                for (int j = half - 1; j >= 0; j--) {
                     if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
                         return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
                     }
                 }
             }
             // Upper right quadrant
-            for (int i = half-1; i >= 0; i--) {
+            for (int i = half - 1; i >= 0; i--) {
                 for (int j = half; j < size1; j++) {
                     if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
                         return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
@@ -174,7 +174,7 @@ class GSComparator implements Comparator<GS> {
             }
             // Lower left quadrant
             for (int i = half; i < size1; i++) {
-                for (int j = half-1; j >= 0; j--) {
+                for (int j = half - 1; j >= 0; j--) {
                     if (s1.getPlace(i, j) != s2.getPlace(i, j)) {
                         return s1.getPlace(i, j) < s2.getPlace(i, j) ? -1 : 1;
                     }
@@ -353,6 +353,41 @@ class BalanceWeightedWinning extends MiniMax {
         }
         return value;
 
+    }
+}
+
+class OthelloAI1 extends MiniMax {
+    public OthelloAI1() {
+    }
+
+    @Override
+    protected float Eval(GS s) {
+        float value = 0;
+        int size = s.getSize();
+        if (s.isFinished()) {
+            int[] tokens = s.countTokens();
+            if (tokens[me - 1] > tokens[me % 2])
+                value = Float.MAX_VALUE;
+            else if (tokens[me - 1] < tokens[me % 2])
+                value = Float.MIN_VALUE;
+            else
+                value = 0;
+        } else if (size != 8) {
+            int[] tokens = s.countTokens();
+            value = (me == 1 ? tokens[0] : tokens[1]) - (me == 1 ? tokens[1] : tokens[0]);
+        } else {
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    if (s.getPlace(i, j) == 0)
+                        continue;
+                    if (me == 1)
+                        value += s.getPlace(i, j) == 1 ? heuristic[i][j] : -heuristic[i][j];
+                    else
+                        value += s.getPlace(i, j) == 2 ? heuristic[i][j] : -heuristic[i][j];
+                }
+            }
+        }
+        return value;
     }
 }
 
@@ -589,14 +624,12 @@ class GS {
                 rr += deltaY;
                 captured++;
             }
-        }
-        else if (deltaY == 0) {
+        } else if (deltaY == 0) {
             while (0 <= cc + deltaX && cc + deltaX < size && getPlace(cc + deltaX, rr) == opponent) {
                 cc += deltaX;
                 captured++;
             }
-        }
-        else {
+        } else {
             while (0 <= rr + deltaY && rr + deltaY < size
                     && 0 <= cc + deltaX && cc + deltaX < size
                     && getPlace(cc + deltaX, rr + deltaY) == opponent) {
@@ -611,5 +644,4 @@ class GS {
         } else
             return 0;
     }
-
 }
