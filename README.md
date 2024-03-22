@@ -67,6 +67,11 @@ where:
 ### Testing all/many bots against each other
 
 The `TestAll.java` script can be used to test any number (at least two) against each other playing all pairs of given bots against each other both as white and black.
+
+```sh
+java TestAll BotA BotB ... BotZ
+```
+
 Running this script will create the following `.csv` files:
 
 - `wins.csv` a csv "table" with the number of wins for the bot playing as black,
